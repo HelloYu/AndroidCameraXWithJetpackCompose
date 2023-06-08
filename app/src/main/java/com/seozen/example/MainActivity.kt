@@ -6,16 +6,18 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
@@ -24,6 +26,7 @@ import com.seozen.example.ui.Permission
 import com.seozen.example.ui.theme.PhotoAppWithCameraX_ComposeTheme
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -31,26 +34,33 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background) {
-                    val context = LocalContext.current
-                    Permission(
-                        permission = android.Manifest.permission.CAMERA,
-                        rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
-                        permissionNotAvailableContent = {
-                            Column() {
-                                Text("O noes! No Camera!")
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = {
-                                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data = Uri.fromParts("package", context.packageName, null)
-                                    })
-                                }) {
-                                    Text("Open Settings")
+                    val emptyImageUri = Uri.parse("file://dev/null")
+                    var imageUri by remember { mutableStateOf(emptyImageUri) }
+                    if (imageUri != emptyImageUri) {
+                        Box(modifier = Modifier) {
+                            Image(
+                                modifier = Modifier.fillMaxSize(),
+                                painter = rememberAsyncImagePainter(imageUri),
+                                contentDescription = "Captured image"
+                            )
+                            Button(
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                onClick = {
+                                    imageUri = emptyImageUri
                                 }
+                            ) {
+                                Text("Remove image")
                             }
                         }
-                    ) {
-                        CameraPreview()
+                    } else {
+                        CameraCapture(
+                            modifier = Modifier,
+                            onImageFile = { file ->
+                                imageUri = file.toUri()
+                            }
+                        )
                     }
+
                 }
             }
         }
