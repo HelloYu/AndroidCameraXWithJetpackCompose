@@ -34,10 +34,9 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background) {
-                    val emptyImageUri = Uri.parse("file://dev/null")
-                    var imageUri by remember { mutableStateOf(emptyImageUri) }
-                    if (imageUri != emptyImageUri) {
-                        Box(modifier = Modifier) {
+                    var imageUri by remember { mutableStateOf(EMPTY_IMAGE_URI) }
+                    if (imageUri != EMPTY_IMAGE_URI) {
+                        Box() {
                             Image(
                                 modifier = Modifier.fillMaxSize(),
                                 painter = rememberAsyncImagePainter(imageUri),
@@ -46,19 +45,40 @@ class MainActivity : ComponentActivity() {
                             Button(
                                 modifier = Modifier.align(Alignment.BottomCenter),
                                 onClick = {
-                                    imageUri = emptyImageUri
+                                    imageUri = EMPTY_IMAGE_URI
                                 }
                             ) {
                                 Text("Remove image")
                             }
                         }
                     } else {
-                        CameraCapture(
-                            modifier = Modifier,
-                            onImageFile = { file ->
-                                imageUri = file.toUri()
+                        var showGallerySelect by remember { mutableStateOf(false) }
+                        if (showGallerySelect) {
+                            GallerySelect(
+                                onImageUri = { uri ->
+                                    showGallerySelect = false
+                                    imageUri = uri
+                                }
+                            )
+                        } else {
+                            Box() {
+                                CameraCapture(
+                                    onImageFile = { file ->
+                                        imageUri = file.toUri()
+                                    }
+                                )
+                                Button(
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .padding(4.dp),
+                                    onClick = {
+                                        showGallerySelect = true
+                                    }
+                                ) {
+                                    Text("Select from Gallery")
+                                }
                             }
-                        )
+                        }
                     }
 
                 }
@@ -67,7 +87,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
+val EMPTY_IMAGE_URI: Uri = Uri.parse("file://dev/null")
 
 @Composable
 fun Greeting(name: String) {

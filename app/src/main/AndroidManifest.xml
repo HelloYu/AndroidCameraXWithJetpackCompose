@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-feature android:name="android.hardware.camera" />
     <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
